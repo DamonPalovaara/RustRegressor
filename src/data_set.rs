@@ -150,7 +150,7 @@ impl Hash for DataEntry {
 
 // Rust enums are algebraic data types en.wikipedia.org/wiki/Algebraic_data_type
 // They can take on any of the variants
-// It takes on the size of the largest variant plus a byte to store the variant
+// It takes on the size of the largest variant plus a byte to store which variant
 // Sometimes the byte gets optimized away e.g. Option<NonNullPointer> allows None to be 0
 #[derive(Debug)]
 pub enum Data {
@@ -168,9 +168,11 @@ pub enum Data {
 
 #[derive(Debug)]
 pub struct Nominal {
+    // fields[id] -> field value
     fields: Vec<String>,
-    // Again data that I'm working on tightly packed with fixed size
+    // vector of ids (makes computer cache much happier over vector of strings)
     data: Vec<u8>,
+    // map[field value] -> id
     map: HashMap<String, u8>,
 }
 

@@ -6,12 +6,12 @@ fn main() {
 
     let train_set = DataSet::import("./datasets/lakes/lakesDiscreteFold1.arff");
     let test_set = DataSet::import("./datasets/lakes/lakesDiscreteFold2.arff");
-    for k in 0..=10 {
+    (0..=10).for_each(|k| {
         let naive_bayes = NaiveBayes::new(&train_set, 18, k);
         println!("K: {}", k);
         naive_bayes.test(&test_set, 18, 1);
         println!();
-    }
+    });
 
     println!("Finished in {:?}", now.elapsed())
 }

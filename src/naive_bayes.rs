@@ -108,7 +108,7 @@ impl NaiveBayes {
                         .map(|attribute_index| {
                             self.probability_given[target_value][attribute_index]
                                 .get(entry[attribute_index] as usize)
-                                .unwrap_or(&0.0)
+                                .unwrap()
                         })
                         .product::<f32>()
                         * self.probability_target[target_value],

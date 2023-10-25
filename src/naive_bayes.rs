@@ -105,8 +105,7 @@ impl NaiveBayes {
                     target_value,
                     (0..entry.len())
                         .filter(|&index| index != target)
-                        .enumerate()
-                        .map(|(attribute_index, _)| {
+                        .map(|attribute_index| {
                             self.probability_given[target_value][attribute_index]
                                 .get(entry[attribute_index] as usize)
                                 .unwrap_or(&0.0)

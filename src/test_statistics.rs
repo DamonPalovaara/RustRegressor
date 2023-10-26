@@ -112,3 +112,9 @@ impl<const N: usize> ConfusionMatrix<N> {
         correct as f32 / total as f32
     }
 }
+
+impl<const N: usize> Default for ConfusionMatrix<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}

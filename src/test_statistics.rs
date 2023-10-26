@@ -1,5 +1,5 @@
-#[derive(Default, Debug)]
 /// TestStats keeps track of true positives, false positives, true negatives, and false negatives
+#[derive(Default, Debug)]
 pub struct TestStats {
     true_positive: u64,
     false_positive: u64,
@@ -74,7 +74,41 @@ impl RightVsWrong {
     pub fn display(&self) {
         println!(
             "Accuracy {}",
-            self.right as f64 / (self.right + self.wrong) as f64
+            self.right as f32 / (self.right + self.wrong) as f32
         )
+    }
+}
+
+pub struct ConfusionMatrix<const N: usize> {
+    matrix: [[usize; N]; N],
+}
+
+impl<const N: usize> ConfusionMatrix<N> {
+    pub fn new() -> Self {
+        let matrix = [[0; N]; N];
+        ConfusionMatrix { matrix }
+    }
+
+    pub fn add_prediction(&mut self, true_label: usize, predicted_label: usize) {
+        debug_assert!(true_label < N && predicted_label < N);
+        self.matrix[true_label][predicted_label] += 1;
+    }
+
+    pub fn display(&self, _positive_feature: usize) {
+        self.matrix.iter().for_each(|row| {
+            row.iter().for_each(|count| print!("{:4} ", count));
+            println!();
+        });
+        println!("Accuracy: {:.3}", self.accuracy());
+    }
+
+    fn accuracy(&self) -> f32 {
+        let correct: usize = (0..N).map(|n| self.matrix[n][n]).sum();
+        let total: usize = self
+            .matrix
+            .iter()
+            .map(|row| row.iter().sum::<usize>())
+            .sum::<usize>();
+        correct as f32 / total as f32
     }
 }

@@ -238,7 +238,7 @@ impl Attribute {
 
     pub fn assume_nominal(&self) -> &Nominal {
         match &self.data {
-            Data::Nominal(nominal) => &nominal,
+            Data::Nominal(nominal) => nominal,
             _ => panic!("Made wrong assumption"),
         }
     }
@@ -345,7 +345,7 @@ impl<'a> Parser<'a> {
     fn parse_nominal(&mut self) -> Data {
         self.index += self.raw_data[self.index..]
             .find('{')
-            .expect("Couldn't find opening {");
+            .expect("Could not find opening {");
         let length = self.raw_data[self.index..]
             .find('}')
             .expect("Could not find closing }")

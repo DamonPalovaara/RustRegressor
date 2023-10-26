@@ -1,6 +1,9 @@
 use std::collections::BTreeMap;
 
-use crate::{data_set::DataSet, test_statistics::TestStats};
+use crate::{
+    data_set::DataSet,
+    test_statistics::{ConfusionMatrix, TestStats},
+};
 
 /// Basic implementation of the Naive Bayes algorithm
 /// with smoothing
@@ -124,7 +127,7 @@ impl NaiveBayes {
     /// target value is what is considered a positive value for calculations of false positives
     pub fn test(&self, test_set: &DataSet, target: usize, target_value: u8) {
         // This is assuming target feature is boolean, confusion matrix isn't generalize over n elements
-        let mut count = TestStats::default();
+        let mut count = ConfusionMatrix::<2>::new();
         (0..test_set.get_data_len())
             .map(|data_index| {
                 (0..test_set.get_len())
@@ -136,20 +139,8 @@ impl NaiveBayes {
                     .collect::<Vec<_>>()
             })
             .for_each(|entry| {
-                if entry[target] == target_value {
-                    // Should be positive
-                    match self.query(&entry, target) == entry[target] {
-                        true => count.add_true_positive(),
-                        false => count.add_false_negative(),
-                    }
-                } else {
-                    // Should be negative
-                    match self.query(&entry, target) == entry[target] {
-                        true => count.add_true_negative(),
-                        false => count.add_false_positive(),
-                    }
-                }
+                count.add_prediction(entry[target] as usize, self.query(&entry, target) as usize)
             });
-        count.print_stats()
+        count.display(1);
     }
 }

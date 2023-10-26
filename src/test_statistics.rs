@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 /// Simplified statistics structure that simply keeps track of right and wrong predictions
 #[derive(Default)]
 pub struct RightVsWrong {
@@ -25,7 +27,12 @@ impl RightVsWrong {
     }
 }
 
+/// Generalized Confusion Matrix over n elements
+/// Matrix is stored as 1D array of length n * n
+/// Indexing is handled by get method
 pub struct ConfusionMatrix {
+    // No need for a vector here, simple pointer to heap is fine
+    // Box is an owned pointer to heap btw (owned meaning it gets dropped once it falls out of scope)
     matrix: Box<[u32]>,
     n: usize,
 }
@@ -38,21 +45,28 @@ impl ConfusionMatrix {
 
     pub fn add_prediction(&mut self, predicted: usize, actual: usize) {
         debug_assert!(actual < self.n && predicted < self.n);
-        self.matrix[(actual * self.n) + predicted] += 1;
+        let index = (predicted * self.n) + actual;
+        self.matrix[index] += 1;
     }
 
-    fn get(&self, predicted: usize, actual: usize) -> u32 {
-        let index = (actual * self.n) + predicted;
+    pub fn get(&self, predicted: usize, actual: usize) -> u32 {
+        debug_assert!(actual < self.n && predicted < self.n);
+        let index = (predicted * self.n) + actual;
         self.matrix[index]
     }
 
     pub fn display(&self, _positive_feature: usize) {
-        (0..self.n).for_each(|row| {
-            (0..self.n)
-                .map(|column| self.get(row, column))
-                .for_each(|count| print!("{:4} ", count));
-            println!();
-        });
+        // For each predicted value
+        (0..self.n)
+            .map(|predicted| {
+                // For each actual value
+                (0..self.n)
+                    // (predicted, actual) -> count
+                    .map(|actual| self.get(predicted, actual))
+                    .map(|count| format!("{:4}", count))
+                    .join(" ")
+            })
+            .for_each(|matrix| println!("{}", matrix));
         println!("Accuracy: {:.3}", self.accuracy());
     }
 

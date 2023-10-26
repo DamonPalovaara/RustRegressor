@@ -4,6 +4,7 @@
         "clippy",
         "cyclotomic",
         "Hasher",
+        "itertools",
         "powi"
     ]
 }

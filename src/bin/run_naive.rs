@@ -4,12 +4,13 @@ use std::time::Instant;
 fn main() {
     let now = Instant::now();
 
-    let train_set = DataSet::import("./datasets/lakes/lakesDiscreteFold1.arff");
-    let test_set = DataSet::import("./datasets/lakes/lakesDiscreteFold2.arff");
+    let target_index = 3;
+    let train_set = DataSet::import("./test_data/test.arff");
+    let test_set = DataSet::import("./test_data/test.arff");
     (0..=10).for_each(|k| {
-        let naive_bayes = NaiveBayes::new(&train_set, 18, k);
+        let naive_bayes = NaiveBayes::new(&train_set, target_index, k);
         println!("K: {}", k);
-        naive_bayes.test(&test_set, 18, 1);
+        naive_bayes.test(&test_set, target_index, 1);
         println!();
     });
 

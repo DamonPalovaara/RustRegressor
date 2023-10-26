@@ -107,8 +107,7 @@ impl NaiveBayes {
                         .filter(|&index| index != target)
                         .map(|attribute_index| {
                             self.probability_given[target_value][attribute_index]
-                                .get(entry[attribute_index] as usize)
-                                .unwrap()
+                                [entry[attribute_index] as usize]
                         })
                         .product::<f32>()
                         * self.probability_target[target_value],
@@ -123,7 +122,8 @@ impl NaiveBayes {
     /// target is the target index of the test_set
     /// target value is what is considered a positive value for calculations of false positives
     pub fn test(&self, test_set: &DataSet, target: usize, _target_value: u8) {
-        // This is assuming target feature is boolean, confusion matrix isn't generalize over n elements
+        // Now  works for any finite set of target features
+        let target_feature_size = test_set.get_attributes()[target].assume_nominal().size();
         let count = (0..test_set.get_data_len())
             .map(|data_index| {
                 // Collecting the entry for each data index
@@ -137,7 +137,7 @@ impl NaiveBayes {
             })
             .map(|entry| (self.query(&entry, target) as usize, entry[target] as usize))
             .fold(
-                ConfusionMatrix::new(test_set.get_attributes()[target].assume_nominal().size()),
+                ConfusionMatrix::new(target_feature_size),
                 |mut count, (predicted, actual)| {
                     count.add_prediction(predicted, actual);
                     count

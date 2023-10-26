@@ -124,9 +124,9 @@ impl NaiveBayes {
     /// target value is what is considered a positive value for calculations of false positives
     pub fn test(&self, test_set: &DataSet, target: usize, _target_value: u8) {
         // This is assuming target feature is boolean, confusion matrix isn't generalize over n elements
-        let mut count = ConfusionMatrix::<2>::new();
-        (0..test_set.get_data_len())
+        let count = (0..test_set.get_data_len())
             .map(|data_index| {
+                // Collecting the entry for each data index
                 (0..test_set.get_len())
                     .map(|attribute_index| {
                         test_set
@@ -135,9 +135,15 @@ impl NaiveBayes {
                     })
                     .collect::<Vec<_>>()
             })
-            .for_each(|entry| {
-                count.add_prediction(entry[target] as usize, self.query(&entry, target) as usize)
-            });
+            .map(|entry| (self.query(&entry, target) as usize, entry[target] as usize))
+            .fold(
+                ConfusionMatrix::new(test_set.get_attributes()[target].assume_nominal().size()),
+                |mut count, (predicted, actual)| {
+                    count.add_prediction(predicted, actual);
+                    count
+                },
+            );
+
         count.display(1);
     }
 }

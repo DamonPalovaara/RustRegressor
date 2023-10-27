@@ -72,11 +72,7 @@ impl ConfusionMatrix {
 
     fn accuracy(&self) -> f32 {
         let correct: u32 = (0..self.n).map(|n| self.get(n, n)).sum();
-        let total: u32 = (0..self.n)
-            // Iterates over every permutation of two iterators (from itertools)
-            .cartesian_product(0..self.n)
-            .map(|(predicted, actual)| self.get(predicted, actual))
-            .sum::<u32>();
+        let total: u32 = self.matrix.iter().sum::<u32>();
         correct as f32 / total as f32
     }
 }

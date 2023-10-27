@@ -5,8 +5,8 @@ fn main() {
     let now = Instant::now();
 
     let target_index = 3;
-    let train_set = DataSet::import("./test_data/test.arff");
-    let test_set = DataSet::import("./test_data/test.arff");
+    let train_set = DataSet::import("./test_data/test.arff").expect("File not found");
+    let test_set = DataSet::import("./test_data/test.arff").expect("File not found");
     (0..=10).for_each(|k| {
         let naive_bayes = NaiveBayes::new(&train_set, target_index, k);
         println!("K: {}", k);

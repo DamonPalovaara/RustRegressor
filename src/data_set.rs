@@ -17,8 +17,8 @@ impl DataSet {
     // Self is shorthand for the type you're implementing, in this case Self == DataSet
     // Self is also conscious of generics e.g. Self == Foo<T> if you're implementing
     // Foo over a generic type T
-    pub fn import(file_path: &str) -> Self {
-        let raw_data = fs::read_to_string(file_path).expect("Unable to read file");
+    pub fn import(file_path: &str) -> Result<Self, String> {
+        let raw_data = fs::read_to_string(file_path).map_err(|_| "File not found".to_string())?; //.expect("Unable to read file");
 
         let relation_index = raw_data.find("@relation").expect("No @relation tag found");
         let relation = Parser::new(&raw_data, relation_index + 9)
@@ -56,11 +56,10 @@ impl DataSet {
                 .enumerate()
                 .for_each(|(index, value)| attributes[index].parse_value(value))
         });
-
-        Self {
+        Ok(Self {
             attributes,
             relation,
-        }
+        })
     }
 
     pub fn display(&self) {

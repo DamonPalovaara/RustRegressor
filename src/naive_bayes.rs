@@ -18,6 +18,9 @@ impl NaiveBayes {
     /// k is the smoothing factor
     pub fn new(data: &DataSet, target: usize, k: usize) -> Self {
         // Target value -> [indices with target value]
+        // btw I should probably mention what '_' are:
+        //  In this context they tell compiler to deduce the type
+        //  Type inference is usually pretty good but there are areas that it struggles
         let mut map = BTreeMap::<_, Vec<usize>>::new();
         (0..data.get_data_len())
             .map(|index| (index, data.get_value(target, index).assume_nominal()))
@@ -28,10 +31,13 @@ impl NaiveBayes {
             });
 
         // target value -> probability of target value
+        // You need to tell Rust the type of collection to collect into
+        // However it's pretty simple to infer the type inside the collection
+        // An alternative to Vec<_> is .collect::<Vec<_>>()
         let probability_target: Vec<_> = map
             .values()
             .map(|indices| indices.len() as f32 / data.get_data_len() as f32)
-            .collect();
+            .collect(); // .collect::<Vec<_>>();
 
         // attribute indices to iterate over
         let attribute_indices: Vec<_> = (0..data.get_len())
@@ -101,20 +107,22 @@ impl NaiveBayes {
         // For each target value
         (0..self.probability_given.len())
             .map(|target_value| {
-                (
-                    target_value,
-                    (0..entry.len())
-                        .filter(|&index| index != target)
-                        .map(|attribute_index| {
-                            self.probability_given[target_value][attribute_index]
-                                [entry[attribute_index] as usize]
-                        })
-                        .product::<f32>()
-                        * self.probability_target[target_value],
-                )
+                let probability = (0..entry.len())
+                    .filter(|&index| index != target)
+                    .map(|attribute_index| {
+                        self.probability_given[target_value][attribute_index]
+                            [entry[attribute_index] as usize]
+                    })
+                    // Rust struggles with inferring type for product() and sum()
+                    .product::<f32>()
+                    * self.probability_target[target_value];
+                (target_value, probability)
             })
-            .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+            // In this context _ is used to tell the compiler you don't need that variable
+            // Here we just need to compare the probabilities
+            .max_by(|(_, prob_a), (_, prob_b)| prob_a.partial_cmp(prob_b).unwrap())
             .unwrap()
+            // Return just the target value
             .0 as u8
     }
 
@@ -135,7 +143,12 @@ impl NaiveBayes {
                     })
                     .collect::<Vec<_>>()
             })
+            // entry -> (predicted, actual)
             .map(|entry| (self.query(&entry, target) as usize, entry[target] as usize))
+            // fold is an iterator consumer that produces a single value, in this case a Confusion Matrix
+            // sum, product, join (from itertools), for_each, collect, etc. are other consumers
+            // Iterators are lazy and won't do anything unless it's being "consumed"
+            // https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.fold
             .fold(
                 ConfusionMatrix::new(target_feature_size),
                 |mut count, (predicted, actual)| {
@@ -144,6 +157,7 @@ impl NaiveBayes {
                 },
             );
 
+        // Display the statistics deduced from the matrix
         count.display(1);
     }
 }

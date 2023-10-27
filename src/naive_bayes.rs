@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use crate::{data_set::DataSet, test_statistics::ConfusionMatrix};
 
 /// Basic implementation of the Naive Bayes algorithm
@@ -53,42 +51,32 @@ impl NaiveBayes {
                     .iter()
                     // For each attribute
                     .map(|attribute_index| {
+                        // Number of values attribute can take on
+                        let attribute_values = data.get_attributes()[*attribute_index]
+                            .assume_nominal()
+                            .size();
                         // For each entry that has given target value
                         let attribute_value_counts = target_value_indices
                             .iter()
                             .map(|index| data.get_value(*attribute_index, *index).assume_nominal())
-                            .fold(BTreeMap::new(), |mut counts, attribute_value| {
+                            .fold(vec![0; attribute_values], |mut counts, attribute_value| {
                                 // Count the number each feature occurs for each attribute
-                                counts
-                                    .entry(attribute_value)
-                                    .and_modify(|count| *count += 1)
-                                    // By explicitly stating 1 is u32 Rust can figure out the value type
-                                    .or_insert(1u32);
+                                counts[attribute_value as usize] += 1;
                                 counts
                             });
-
-                        // Number of values attribute can take on
-                        let n = data.get_attributes()[*attribute_index]
-                            .assume_nominal()
-                            .size();
-
-                        // We need to calculate probability for all features of attribute
-                        // even if the count is 0
-                        (0..n)
-                            .map(|attribute_value| {
-                                *attribute_value_counts
-                                    .get(&(attribute_value as u8))
-                                    .unwrap_or(&0) as usize
-                            })
+                        // Calculate the probability of target given feature
+                        attribute_value_counts
+                            .iter()
                             .map(|count| {
-                                (count + k) as f32 / (target_value_indices.len() + (n * k)) as f32
+                                (count + k) as f32
+                                    / (target_value_indices.len() + (attribute_values * k)) as f32
                             })
                             .collect()
                     })
-                    // Collect into a Vec<Vec<f32>> for given target value
+                    // Collect all the probabilities for the target value
                     .collect::<Vec<_>>()
             })
-            // Collect into a Vec<Vec<Vec<f32>>>
+            // Collect all the probabilities together
             .collect();
 
         Self {
@@ -123,9 +111,8 @@ impl NaiveBayes {
             // In this context _ is used to tell the compiler you don't need that variable
             // Here we just need to compare the probabilities
             .max_by(|(_, prob_a), (_, prob_b)| prob_a.partial_cmp(prob_b).unwrap())
+            .map(|(target_value, _)| target_value as u8)
             .unwrap()
-            // Return just the target value
-            .0 as u8
     }
 
     /// Test a set of data with known target values to calculate the accuracy

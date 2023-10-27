@@ -66,14 +66,16 @@ impl ConfusionMatrix {
                     .map(|count| format!("{:4}", count))
                     .join(" ")
             })
-            .for_each(|matrix| println!("{}", matrix));
+            .for_each(|row| println!("{}", row));
         println!("Accuracy: {:.3}", self.accuracy());
     }
 
     fn accuracy(&self) -> f32 {
         let correct: u32 = (0..self.n).map(|n| self.get(n, n)).sum();
         let total: u32 = (0..self.n)
-            .map(|row| (0..self.n).map(|column| self.get(row, column)).sum::<u32>())
+            // Iterates over every permutation of two iterators (from itertools)
+            .cartesian_product(0..self.n)
+            .map(|(predicted, actual)| self.get(predicted, actual))
             .sum::<u32>();
         correct as f32 / total as f32
     }

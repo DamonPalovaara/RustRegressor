@@ -21,20 +21,25 @@ impl NaiveBayes {
         // btw I should probably mention what '_' are:
         //  In this context they tell compiler to deduce the type
         //  Type inference is usually pretty good but there are areas that it struggles
-        let mut map = BTreeMap::<_, Vec<usize>>::new();
-        (0..data.get_data_len())
+        // let mut target_indices = BTreeMap::<_, Vec<usize>>::new();
+        let target_indices = (0..data.get_data_len())
             .map(|index| (index, data.get_value(target, index).assume_nominal()))
-            .for_each(|(index, target)| {
-                map.entry(target)
-                    .and_modify(|entry| entry.push(index))
-                    .or_insert(vec![index]);
-            });
+            .fold(
+                BTreeMap::<_, Vec<_>>::new(),
+                |mut indices, (index, target)| {
+                    indices
+                        .entry(target)
+                        .and_modify(|entry| entry.push(index))
+                        .or_insert(vec![index]);
+                    indices
+                },
+            );
 
         // target value -> probability of target value
         // You need to tell Rust the type of collection to collect into
         // However it's pretty simple to infer the type inside the collection
         // An alternative to Vec<_> is .collect::<Vec<_>>()
-        let probability_target: Vec<_> = map
+        let probability_target: Vec<_> = target_indices
             .values()
             .map(|indices| indices.len() as f32 / data.get_data_len() as f32)
             .collect(); // .collect::<Vec<_>>();
@@ -46,7 +51,7 @@ impl NaiveBayes {
 
         // array[target_value][attribute_index][attribute_value] = P(target_value | attribute_value)
         // This is nasty, I'm sorry. I probably should just be using for loops here
-        let probability_given: Vec<_> = map
+        let probability_given: Vec<_> = target_indices
             .values()
             // For each target value
             .map(|target_value_indices| {
@@ -54,17 +59,18 @@ impl NaiveBayes {
                     .iter()
                     // For each attribute
                     .map(|attribute_index| {
-                        let mut attribute_value_counts = BTreeMap::new();
+                        // let mut attribute_value_counts = BTreeMap::new();
                         // For each entry that has given target value
-                        target_value_indices
+                        let attribute_value_counts = target_value_indices
                             .iter()
                             .map(|index| data.get_value(*attribute_index, *index).assume_nominal())
-                            .for_each(|attribute_value| {
-                                // Count the number each attribute value occurs for each attribute
-                                attribute_value_counts
+                            .fold(BTreeMap::new(), |mut counts, attribute_value| {
+                                // Count the number each feature occurs for each attribute
+                                counts
                                     .entry(attribute_value)
                                     .and_modify(|count| *count += 1)
                                     .or_insert(1u32);
+                                counts
                             });
 
                         // Number of values attribute can take on
@@ -72,6 +78,8 @@ impl NaiveBayes {
                             .assume_nominal()
                             .size();
 
+                        // We need to calculate probability for all features of attribute
+                        // even if the count is 0
                         (0..n)
                             .map(|attribute_value| {
                                 *attribute_value_counts

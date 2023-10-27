@@ -56,17 +56,13 @@ impl ConfusionMatrix {
     }
 
     pub fn display(&self, _positive_feature: usize) {
-        // For each predicted value
-        (0..self.n)
-            .map(|predicted| {
-                // For each actual value
-                (0..self.n)
-                    // (predicted, actual) -> count
-                    .map(|actual| self.get(predicted, actual))
-                    .map(|count| format!("{:4}", count))
-                    .join(" ")
-            })
-            .for_each(|row| println!("{}", row));
+        let matrix_string = self
+            .matrix
+            .chunks(self.n)
+            .map(|row| row.iter().map(|count| format!("{:4}", count)).join(" "))
+            .join("\n");
+
+        println!("{}", matrix_string);
         println!("Accuracy: {:.3}", self.accuracy());
     }
 

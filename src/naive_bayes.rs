@@ -18,19 +18,13 @@ impl NaiveBayes {
     /// k is the smoothing factor
     pub fn new(data: &DataSet, target: usize, k: usize) -> Self {
         // Target value -> [indices with target value]
-        // btw I should probably mention what '_' are:
-        //  In this context they tell compiler to deduce the type
-        //  Type inference is usually pretty good but there are areas that it struggles
-        // let mut target_indices = BTreeMap::<_, Vec<usize>>::new();
+        let target_feature_size = data.get_attributes()[target].assume_nominal().size();
         let target_indices = (0..data.get_data_len())
             .map(|index| (index, data.get_value(target, index).assume_nominal()))
             .fold(
-                BTreeMap::<_, Vec<_>>::new(),
+                vec![vec![]; target_feature_size],
                 |mut indices, (index, target)| {
-                    indices
-                        .entry(target)
-                        .and_modify(|entry| entry.push(index))
-                        .or_insert(vec![index]);
+                    indices[target as usize].push(index);
                     indices
                 },
             );
@@ -40,7 +34,7 @@ impl NaiveBayes {
         // However it's pretty simple to infer the type inside the collection
         // An alternative to Vec<_> is .collect::<Vec<_>>()
         let probability_target: Vec<_> = target_indices
-            .values()
+            .iter()
             .map(|indices| indices.len() as f32 / data.get_data_len() as f32)
             .collect(); // .collect::<Vec<_>>();
 
@@ -52,14 +46,13 @@ impl NaiveBayes {
         // array[target_value][attribute_index][attribute_value] = P(target_value | attribute_value)
         // This is nasty, I'm sorry. I probably should just be using for loops here
         let probability_given: Vec<_> = target_indices
-            .values()
+            .iter()
             // For each target value
             .map(|target_value_indices| {
                 attribute_indices
                     .iter()
                     // For each attribute
                     .map(|attribute_index| {
-                        // let mut attribute_value_counts = BTreeMap::new();
                         // For each entry that has given target value
                         let attribute_value_counts = target_value_indices
                             .iter()
@@ -69,6 +62,7 @@ impl NaiveBayes {
                                 counts
                                     .entry(attribute_value)
                                     .and_modify(|count| *count += 1)
+                                    // By explicitly stating 1 is u32 Rust can figure out the value type
                                     .or_insert(1u32);
                                 counts
                             });
@@ -155,7 +149,7 @@ impl NaiveBayes {
             .map(|entry| (self.query(&entry, target) as usize, entry[target] as usize))
             // fold is an iterator consumer that produces a single value, in this case a Confusion Matrix
             // sum, product, join (from itertools), for_each, collect, etc. are other consumers
-            // Iterators are lazy and won't do anything unless it's being "consumed"
+            // Iterators are lazy and won't do anything unless they're being "consumed"
             // https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.fold
             .fold(
                 ConfusionMatrix::new(target_feature_size),

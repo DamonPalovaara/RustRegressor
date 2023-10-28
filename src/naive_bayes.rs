@@ -36,9 +36,6 @@ impl NaiveBayes {
             .map(|indices| indices.len() as f32 / data.get_data_len() as f32)
             .collect(); // .collect::<Vec<_>>();
 
-        // attribute indices to iterate over
-        let attribute_indices: Vec<_> = (0..data.get_len()).collect();
-
         // array[target_value][attribute_index][attribute_value] = P(target_value | attribute_value)
         // This is nasty, I'm sorry. I probably should just be using for loops here
         let probability_given: Vec<_> = target_indices

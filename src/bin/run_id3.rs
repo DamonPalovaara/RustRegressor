@@ -8,11 +8,9 @@ use arff_reader::{
 fn main() {
     let now = Instant::now();
 
-    let train_set =
-        DataSet::import("./datasets/lakes/lakesDiscreteFold1.arff").expect("File not found");
-    let test_set =
-        DataSet::import("./datasets/lakes/lakesDiscreteFold2.arff").expect("File not found");
-    let target = 18;
+    let train_set = DataSet::import("./test_data/lakesDiscreteFold1.arff").expect("File not found");
+    let test_set = DataSet::import("./test_data/lakesDiscreteFold2.arff").expect("File not found");
+    let target = 10;
     let mut id3 = ID3::default();
     let training_data = ProcessedData::import(&train_set);
     let testing_data = ProcessedData::import_test_data(&test_set, training_data.layout.as_slice());

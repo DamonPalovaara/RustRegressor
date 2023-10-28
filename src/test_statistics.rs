@@ -64,6 +64,7 @@ impl ConfusionMatrix {
 
         println!("{}", matrix_string);
         println!("Accuracy: {:.3}", self.accuracy());
+        // This is only meaningful if the target feature is ordinal
         println!("Distance cost: {}", self.distance_cost());
         println!("Distance squared cost: {}", self.distance_squared_cost());
     }

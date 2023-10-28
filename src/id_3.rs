@@ -4,6 +4,7 @@ use crate::{
     all_equal,
     data_set::{Data, DataSet, Nominal},
     majority_vote_ordered, normalize, swap_remove,
+    test_statistics::ConfusionMatrix,
 };
 
 // Just need IDs for the categories. Could considering using u16 or u8s instead
@@ -229,7 +230,9 @@ impl ID3 {
     }
 
     pub fn test(&self, test_data: &ProcessedData, target: usize) {
-        let correct_count: usize = (0..test_data.data_len())
+        // Hackish O(n) hack to get order of target feature
+        let size = *test_data.get_attribute(target).iter().max().unwrap() as usize + 1;
+        let count = (0..test_data.data_len())
             .map(|data_index| {
                 (0..test_data.attribute_len())
                     .map(|attribute_index| {
@@ -238,13 +241,15 @@ impl ID3 {
                     .collect()
             })
             .map(|entry: Vec<u32>| (self.query(&entry), entry[target]))
-            .filter(|(predicted, actual)| predicted == actual)
-            .map(|_| 1)
-            .sum();
-        println!(
-            "Accuracy {}",
-            correct_count as f32 / test_data.data_len() as f32
-        );
+            .fold(
+                ConfusionMatrix::new(size),
+                |mut count, (predicted, actual)| {
+                    count.add_prediction(predicted as usize, actual as usize);
+                    count
+                },
+            );
+
+        count.display(1);
     }
 
     pub fn query(&self, data: &[u32]) -> u32 {

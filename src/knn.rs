@@ -1,7 +1,7 @@
 use crate::{
     data_set::{Data, DataEntry, DataSet},
     majority_vote,
-    test_statistics::RightVsWrong,
+    test_statistics::ConfusionMatrix,
 };
 
 /// K-Nearest Neighbors implementation. Works by taking a majority vote of the k-nearest neighbor's target value
@@ -84,26 +84,31 @@ impl KNN {
             .collect();
 
         // Iterate over each possible value of k
-        (1..=self.data.get_data_len())
+        (1..=50)
             .map(|k| {
-                let mut count = RightVsWrong::default();
-                nearest_neighbors
+                let n = test_set.get_attributes()[target].assume_nominal().size();
+                let count = nearest_neighbors
                     .iter()
                     .enumerate()
                     // Worth noting that nearest_neighbors in this context is for the single entry, not all the entries
                     .map(|(index, nearest_neighbors)| {
                         (index, self.query_k(nearest_neighbors, k, target))
                     })
-                    .map(|(index, prediction)| (prediction, test_set.get_value(target, index)))
-                    .for_each(|(prediction, actual)| match prediction == actual {
-                        true => count.was_right(),
-                        false => count.was_wrong(),
+                    .map(|(index, prediction)| {
+                        (
+                            prediction.assume_nominal(),
+                            test_set.get_value(target, index).assume_nominal(),
+                        )
+                    })
+                    .fold(ConfusionMatrix::new(n), |mut count, (predicted, actual)| {
+                        count.add_prediction(predicted as usize, actual as usize);
+                        count
                     });
                 (k, count)
             })
-            .for_each(|(k, result)| {
+            .for_each(|(k, count)| {
                 println!("k: {}", k);
-                result.display();
+                count.display(1);
             });
     }
 }

@@ -64,11 +64,45 @@ impl ConfusionMatrix {
 
         println!("{}", matrix_string);
         println!("Accuracy: {:.3}", self.accuracy());
+        println!("Distance cost: {}", self.distance_cost());
+        println!("Distance squared cost: {}", self.distance_squared_cost());
     }
 
-    fn accuracy(&self) -> f32 {
+    pub fn accuracy(&self) -> f32 {
         let correct: u32 = (0..self.n).map(|n| self.get(n, n)).sum();
         let total: u32 = self.matrix.iter().sum::<u32>();
         correct as f32 / total as f32
+    }
+
+    // Creates a cost matrix with matrix[n][n] = 0 and matrix[m][n] = |m - n|
+    // Smaller score is better
+    fn distance_cost(&self) -> i64 {
+        (0..self.n)
+            .cartesian_product(0..self.n)
+            .map(|(predicted, actual)| {
+                (
+                    predicted as i64,
+                    actual as i64,
+                    self.get(predicted, actual) as i64,
+                )
+            })
+            .map(|(predicted, actual, count)| count * (predicted - actual).abs())
+            .sum()
+    }
+
+    // Creates a cost matrix with matrix[n][n] = 0 and matrix[m][n] = (m - n)^2
+    // Smaller score is better
+    fn distance_squared_cost(&self) -> i64 {
+        (0..self.n)
+            .cartesian_product(0..self.n)
+            .map(|(predicted, actual)| {
+                (
+                    predicted as i64,
+                    actual as i64,
+                    self.get(predicted, actual) as i64,
+                )
+            })
+            .map(|(predicted, actual, count)| count * (predicted - actual).pow(2))
+            .sum()
     }
 }

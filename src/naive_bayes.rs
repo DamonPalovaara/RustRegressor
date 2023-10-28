@@ -119,8 +119,8 @@ impl NaiveBayes {
         // Now  works for any finite set of target features
         let target_feature_size = test_set.get_attributes()[target].assume_nominal().size();
         let count = (0..test_set.get_data_len())
+            // data index -> entry
             .map(|data_index| {
-                // Collecting the entry for each data index
                 (0..test_set.get_len())
                     .map(|attribute_index| {
                         test_set

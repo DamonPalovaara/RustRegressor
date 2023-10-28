@@ -4,9 +4,9 @@ use std::time::Instant;
 fn main() {
     let now = Instant::now();
 
-    let target_index = 3;
-    let train_set = DataSet::import("./test_data/test.arff").expect("File not found");
-    let test_set = DataSet::import("./test_data/test.arff").expect("File not found");
+    let target_index = 11;
+    let train_set = DataSet::import("./test_data/lakesDiscreteFold1.arff").expect("File not found");
+    let test_set = DataSet::import("./test_data/lakesDiscreteFold2.arff").expect("File not found");
     (0..=10).for_each(|k| {
         let naive_bayes = NaiveBayes::new(&train_set, target_index, k);
         println!("K: {}", k);

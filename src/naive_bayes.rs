@@ -37,9 +37,7 @@ impl NaiveBayes {
             .collect(); // .collect::<Vec<_>>();
 
         // attribute indices to iterate over
-        let attribute_indices: Vec<_> = (0..data.get_len())
-            .filter(|&index| index != target)
-            .collect();
+        let attribute_indices: Vec<_> = (0..data.get_len()).collect();
 
         // array[target_value][attribute_index][attribute_value] = P(target_value | attribute_value)
         // This is nasty, I'm sorry. I probably should just be using for loops here
@@ -47,18 +45,19 @@ impl NaiveBayes {
             .iter()
             // For each target value
             .map(|target_value_indices| {
-                attribute_indices
-                    .iter()
+                // Note that this also calculates P(target | target)
+                // That was a fix to out of bounds index issue when target index != last
+                (0..data.get_len())
                     // For each attribute
                     .map(|attribute_index| {
                         // Number of values attribute can take on
-                        let attribute_values = data.get_attributes()[*attribute_index]
+                        let attribute_values = data.get_attributes()[attribute_index]
                             .assume_nominal()
                             .size();
                         // For each entry that has given target value
                         let attribute_value_counts = target_value_indices
                             .iter()
-                            .map(|index| data.get_value(*attribute_index, *index).assume_nominal())
+                            .map(|index| data.get_value(attribute_index, *index).assume_nominal())
                             .fold(vec![0; attribute_values], |mut counts, attribute_value| {
                                 // Count the number each feature occurs for each attribute
                                 counts[attribute_value as usize] += 1;
@@ -99,6 +98,7 @@ impl NaiveBayes {
             .map(|target_value| {
                 let probability = (0..entry.len())
                     .filter(|&index| index != target)
+                    // Dirty fix for out of bounds index
                     .map(|attribute_index| {
                         self.probability_given[target_value][attribute_index]
                             [entry[attribute_index] as usize]

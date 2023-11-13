@@ -1,7 +1,9 @@
-use arff_reader::{data_set::DataSet, naive_bayes::NaiveBayes};
-use itertools::Itertools;
-use std::{error, time::Instant};
+use arff_reader::data_set::DataSet;
+use std::time::Instant;
 
+// This takes 30 seconds to run on release build.
+// USE RELEASE FLAG FOR THIS (will take forever otherwise!)
+// This is a late night code spike, will clean up soon!
 fn main() {
     let now = Instant::now();
 
@@ -34,7 +36,7 @@ impl LinearModel {
         let mut bias_error_delta = 0.0;
         let mut sum_squared_error = 0.0;
 
-        for _ in 0..1_000_000_000 {
+        for _ in 0..100_000_000 {
             predictions = (0..predictions.len())
                 .map(|instance| {
                     // bias

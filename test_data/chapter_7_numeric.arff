@@ -1,0 +1,18 @@
+@relation 'Table7-1 numeric only'
+
+@attribute Size numeric
+@attribute Floor numeric
+@attribute 'Broadband Rate' numeric
+@attribute 'Rental Price' numeric
+
+@data
+500,4,8,320
+550,7,50,380
+620,9,7,400
+630,5,24,390
+665,8,100,385
+700,4,8,410
+770,10,7,480
+880,12,50,600
+920,14,8,570
+1000,9,24,620

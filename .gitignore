@@ -1,4 +1,5 @@
 /target
 /datasets
+/hidden_datasets
 /src/bin/test.rs
 export

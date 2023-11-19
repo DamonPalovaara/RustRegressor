@@ -244,7 +244,7 @@ impl Attribute {
 
     pub fn assume_numeric(&self) -> &[f32] {
         match &self.data {
-            Data::Numeric(data) => &data,
+            Data::Numeric(data) => data,
             _ => panic!("Made wrong assumption"),
         }
     }

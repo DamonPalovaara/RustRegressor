@@ -5,6 +5,8 @@
         "cyclotomic",
         "Hasher",
         "itertools",
-        "powi"
+        "multiunzip",
+        "powi",
+        "rustfmt"
     ]
 }

@@ -4,6 +4,7 @@ use std::hash::Hash;
 pub mod data_set;
 pub mod id_3;
 pub mod knn;
+pub mod linear;
 pub mod naive_bayes;
 pub mod test_statistics;
 

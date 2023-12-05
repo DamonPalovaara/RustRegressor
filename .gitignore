@@ -2,4 +2,5 @@
 /datasets
 /hidden_datasets
 /src/bin/test.rs
+/src/bin/generate.rs
 export
